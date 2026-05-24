@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "ArtChicago",
+    "slug": "proyecto-expo-nosql-individual",
+    "version": "1.0.0",
+    "platforms": ["android"],
+    "extra": {
+      "eas": {
+        "projectId": "2b81d1c7-a6c6-4653-af7c-93089c280d3d"
+      }
+    },
+    "android": {
+      "package": "com.jaime_poveda.proyectoexponosqlindividual"
+    }
+  }
+}
