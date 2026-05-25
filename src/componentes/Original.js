@@ -43,39 +43,51 @@ export default function Original() {
     } catch (e) { console.error(e); }
   };
 
-  const toggleFavorito = async (obraId) => {
-    if (!uid) return;
-    const esFavorito = favoritos.includes(obraId);
-    setFavoritos(prev => esFavorito ? prev.filter(id => id !== obraId) : [...prev, obraId]);
-    try {
-      const docRef = doc(db, "usuarios", uid);
-      await updateDoc(docRef, { favoritos_obras: esFavorito ? arrayRemove(obraId) : arrayUnion(obraId) });
-    } catch (e) {
-      setFavoritos(prev => esFavorito ? [...prev, obraId] : prev.filter(id => id !== obraId));
-      Alert.alert("Error", "No se pudo actualizar favoritos");
-    }
-  };
-
-  if (obraSeleccionada) {
-    const img = `${IMG_BASE}/${obraSeleccionada.image_id}/full/800,/0/default.jpg`;
-    const esFav = favoritos.includes(obraSeleccionada.id);
-    return (
-      <ScrollView style={styles.container}>
-        <TouchableOpacity style={styles.btnVolver} onPress={() => setObraSeleccionada(null)}>
-          <Text style={styles.btnVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
-        <Image source={{ uri: img }} style={styles.imagenGrande} resizeMode="contain" />
-        <View style={styles.detalleContainer}>
-          <Text style={styles.tituloDetalle}>{obraSeleccionada.title}</Text>
-          <Text style={styles.artistaDetalle}>{obraSeleccionada.artist_display}</Text>
-          <Text style={styles.fechaDetalle}>{obraSeleccionada.date_display}</Text>
-          <TouchableOpacity style={[styles.btnFav, esFav && styles.btnFavActivo]} onPress={() => toggleFavorito(obraSeleccionada.id)}>
-            <Text style={styles.btnFavTexto}>{esFav ? "Quitar de favoritos" : "Agregar a favoritos"}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    );
+// Bug 1: convertir siempre a string al comparar y guardar
+const toggleFavorito = async (obraId) => {
+  if (!uid) return;
+  const idStr = String(obraId); // ← conversión clave
+  const esFavorito = favoritos.includes(idStr);
+  setFavoritos(prev => esFavorito ? prev.filter(id => id !== idStr) : [...prev, idStr]);
+  try {
+    const docRef = doc(db, "usuarios", uid);
+    await updateDoc(docRef, {
+      favoritos_obras: esFavorito ? arrayRemove(idStr) : arrayUnion(idStr)
+    });
+  } catch (e) {
+    setFavoritos(prev => esFavorito ? [...prev, idStr] : prev.filter(id => id !== idStr));
+    Alert.alert("Error", "No se pudo actualizar favoritos");
   }
+};
+
+if (obraSeleccionada) {
+  const img = `${IMG_BASE}/${obraSeleccionada.image_id}/full/800,/0/default.jpg`;
+  const esFav = favoritos.includes(String(obraSeleccionada.id));
+  return (
+    <ScrollView style={styles.container}>
+      <TouchableOpacity style={styles.btnVolver} onPress={() => setObraSeleccionada(null)}>
+        <Text style={styles.btnVolverTexto}>← Volver</Text>
+      </TouchableOpacity>
+      <Image source={{ uri: img }} style={styles.imagenGrande} resizeMode="contain" />
+      <View style={styles.detalleContainer}>
+        <Text style={styles.tituloDetalle}>{obraSeleccionada.title}</Text>
+        <Text style={styles.artistaDetalle}>{obraSeleccionada.artist_display}</Text>
+        <Text style={styles.fechaDetalle}>{obraSeleccionada.date_display}</Text>
+
+        {/* ↓ Aquí el cambio: se agregó el estilo condicional al Text */}
+        <TouchableOpacity
+          style={[styles.btnFav, esFav && styles.btnFavActivo]}
+          onPress={() => toggleFavorito(obraSeleccionada.id)}
+        >
+          <Text style={[styles.btnFavTexto, esFav && styles.btnFavTextoActivo]}>
+            {esFav ? "Quitar de favoritos" : "Agregar a favoritos"}
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+    </ScrollView>
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -103,7 +115,7 @@ export default function Original() {
           keyExtractor={item => String(item.id)}
           renderItem={({ item }) => {
             const imgUrl = `${IMG_BASE}/${item.image_id}/full/400,/0/default.jpg`;
-            const esFav = favoritos.includes(item.id);
+            const esFav = favoritos.includes(String(item.id));
             return (
               <TouchableOpacity style={styles.tarjeta} onPress={() => setObraSeleccionada(item)} activeOpacity={0.8}>
                 <Image source={{ uri: imgUrl }} style={styles.imagen} resizeMode="cover" />
@@ -150,4 +162,5 @@ const styles = StyleSheet.create({
   btnFav: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#8B4513', padding: 14, borderRadius: 10, alignItems: 'center' },
   btnFavActivo: { backgroundColor: '#8B4513' },
   btnFavTexto: { color: '#8B4513', fontWeight: 'bold', fontSize: 15 },
+  btnFavTextoActivo: { color: '#fff' },  
 });
