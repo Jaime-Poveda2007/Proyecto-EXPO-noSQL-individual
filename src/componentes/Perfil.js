@@ -1,6 +1,7 @@
-// src/componentes/Perfil.js
+touchable// src/componentes/Perfil.js
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, TextInput, TouchableOpacity,
   Alert, StyleSheet, ScrollView, ActivityIndicator
@@ -17,10 +18,12 @@ export default function Perfil() {
   const [cargando, setCargando] = useState(true);
   const uid = auth.currentUser?.uid;
 
-  useEffect(() => {
-    if (!uid) return;
-    cargarPerfil();
-  }, [uid]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!uid) return;
+      cargarPerfil();
+    }, [uid])
+  );
 
   const cargarPerfil = async () => {
     try {
